@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Create game container
         snakeGame.gameContainer = document.createElement('div');
-        snakeGame.gameContainer.className = 'game-container';
+        snakeGame.gameContainer.className = 'snake-game-container';
         output.appendChild(snakeGame.gameContainer);
         
         // Create instructions first
@@ -473,14 +473,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Create game grid
         const gameGrid = document.createElement('div');
-        gameGrid.className = 'game-grid';
+        gameGrid.className = 'snake-game-grid';
         snakeGame.gameContainer.appendChild(gameGrid);
         
         // Create grid cells
         for (let y = 0; y < snakeGame.gridSize; y++) {
             for (let x = 0; x < snakeGame.gridSize; x++) {
                 const cell = document.createElement('div');
-                cell.className = 'game-cell';
+                cell.className = 'snake-game-cell';
                 cell.dataset.x = x;
                 cell.dataset.y = y;
                 gameGrid.appendChild(cell);
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(snakeGame.interval);
         
         // Remove game container
-        const gameContainer = document.querySelector('.game-container');
+        const gameContainer = document.querySelector('.snake-game-container');
         if (gameContainer) {
             gameContainer.remove();
         }
@@ -526,14 +526,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderGame() {
-        const gameGrid = document.querySelector('.game-grid');
+        const gameGrid = document.querySelector('.snake-game-grid');
         gameGrid.innerHTML = '';
         
         // Create grid cells
         for (let y = 0; y < snakeGame.gridSize; y++) {
             for (let x = 0; x < snakeGame.gridSize; x++) {
                 const cell = document.createElement('div');
-                cell.className = 'game-cell';
+                cell.className = 'snake-game-cell';
                 
                 if (snakeGame.snake[0].x === x && snakeGame.snake[0].y === y) {
                     cell.textContent = '■';
