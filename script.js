@@ -1308,36 +1308,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-
-    // Add styles to the document
-    const style = document.createElement('style');
-    style.textContent = `
-        .terminal {
-            background-color: var(--background-color);
-            color: var(--primary-color);
-            font-family: 'Courier New', monospace;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Add new styles for stamp tool */
-        .conway-cell.selecting {
-            background-color: rgba(255, 255, 255, 0.2);
-            border: 1px solid var(--primary-color);
-        }
-
-        .conway-cell.selecting.alive {
-            background-color: var(--primary-color);
-            opacity: 0.7;
-        }
-
-        /* Existing styles... */
-    `;
-    document.head.appendChild(style);
 }); 

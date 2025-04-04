@@ -18,10 +18,20 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     font-family: 'VT323', monospace;
-    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
     overflow: hidden;
     margin: 0;
     padding: 0;
+}
+
+@media (max-width: 768px) {
+    body {
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: none;
+        position: fixed;
+        width: 100%;
+        height: calc(var(--vh, 1vh) * 100);
+    }
 }
 
 .container {
@@ -30,10 +40,16 @@ body {
     padding: 2rem;
     position: relative;
     z-index: 1;
-    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0;
+    }
 }
 
 .glitch-wrapper {
@@ -207,6 +223,16 @@ body {
     justify-content: center;
     gap: 2rem;
     margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+    .social-links {
+        display: none;
+    }
+
+    .wave-container {
+        display: none;
+    }
 }
 
 .social-link {
@@ -438,31 +464,14 @@ body {
 }
 
 @media (max-width: 768px) {
-    .glitch {
-        font-size: 2rem;
+    .retro-nav, .glitch-wrapper {
+        display: none;
     }
-    
     .terminal {
-        font-size: 0.9rem;
-    }
-    
-    .social-links {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .retro-nav {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .retro-btn {
-        width: 100%;
-        max-width: 300px;
-    }
-
-    .retro-grid {
-        grid-template-columns: 1fr;
+        height: calc(var(--vh, 1vh) * 100);
+        width: 100vw;
+        margin: 0;
+        border-radius: 0;
     }
 }
 
@@ -771,3 +780,15 @@ body {
 .snake-game-cell.food {
     background-color: var(--primary-color);
 } 
+
+
+/* Add new styles for stamp tool */
+.conway-cell.selecting {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--primary-color);
+}
+
+.conway-cell.selecting.alive {
+    background-color: var(--primary-color);
+    opacity: 0.7;
+}
