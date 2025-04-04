@@ -47,7 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
         viewportHeight: 0,
         cellSize: 20,
         mode: 'pan', // Default to pan mode
-        isMouseDown: false // Track mouse button state
+        isMouseDown: false, // Track mouse button state
+        // New stamp tool state variables
+        stampMode: {
+            isActive: false,
+            isSelecting: false,
+            selectionStart: null,
+            selectionEnd: null,
+            currentStamp: null,
+            stampOffset: { x: 0, y: 0 }
+        }
     };
 
     // Predefined Conway patterns
@@ -692,12 +701,48 @@ document.addEventListener('DOMContentLoaded', () => {
             const isActive = drawButton.classList.toggle('active');
             conwayGame.mode = isActive ? 'draw' : 'pan';
             gridContainer.style.cursor = isActive ? 'crosshair' : 'default';
+            // Clear stamp when switching tools
+            if (conwayGame.stampMode.currentStamp) {
+                conwayGame.stampMode.currentStamp = null;
+                conwayGame.stampMode.isActive = false;
+            }
+            // Deactivate stamp button
+            const stampButton = document.querySelector('button[title="Stamp Tool"]');
+            if (stampButton) {
+                stampButton.classList.remove('active');
+            }
         });
         gameControls.appendChild(drawButton);
+
+        // Add Stamp tool button
+        const stampButton = document.createElement('button');
+        stampButton.className = 'control-button';
+        stampButton.innerHTML = '📍';
+        stampButton.title = 'Stamp Tool';
+        stampButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isActive = stampButton.classList.toggle('active');
+            // Deactivate other tools
+            drawButton.classList.remove('active');
+            conwayGame.mode = isActive ? 'stamp' : 'pan';
+            gridContainer.style.cursor = isActive ? 'crosshair' : 'default';
+            // Reset stamp mode state
+            conwayGame.stampMode.isActive = isActive;
+            conwayGame.stampMode.isSelecting = false;
+            conwayGame.stampMode.selectionStart = null;
+            conwayGame.stampMode.selectionEnd = null;
+            conwayGame.stampMode.currentStamp = null;
+            // Clear any existing selection visual
+            document.querySelectorAll('.conway-cell').forEach(cell => {
+                cell.classList.remove('selecting');
+            });
+        });
+        gameControls.appendChild(stampButton);
         
         // Set initial mode to draw
         conwayGame.mode = 'draw';
         gridContainer.style.cursor = 'crosshair';
+        drawButton.classList.add('active');
         
         // Play/Pause button
         const playPauseButton = document.createElement('button');
@@ -803,6 +848,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 drawButton.classList.add('active');
                 conwayGame.mode = 'draw';
                 gridContainer.style.cursor = 'crosshair';
+
+                // Deactivate stamp mode and button
+                const stampButton = document.querySelector('button[title="Stamp Tool"]');
+                if (stampButton) {
+                    stampButton.classList.remove('active');
+                }
+                conwayGame.stampMode.isActive = false;
+                conwayGame.stampMode.currentStamp = null;
+                conwayGame.stampMode.isSelecting = false;
+                conwayGame.stampMode.selectionStart = null;
+                conwayGame.stampMode.selectionEnd = null;
+                // Clear any existing selection visual
+                document.querySelectorAll('.conway-cell').forEach(cell => {
+                    cell.classList.remove('selecting');
+                });
             });
             gameControls.appendChild(patternButton);
         });
@@ -872,6 +932,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             } else {
                                 toggleCell(cell);
                             }
+                        } else if (conwayGame.mode === 'stamp') {
+                            if (conwayGame.stampMode.currentStamp) {
+                                // Paste the stamp
+                                const x = parseInt(cell.dataset.x);
+                                const y = parseInt(cell.dataset.y);
+                                pasteStamp(x, y);
+                            } else {
+                                // Start selection
+                                conwayGame.stampMode.isSelecting = true;
+                                conwayGame.stampMode.selectionStart = {
+                                    x: parseInt(cell.dataset.x),
+                                    y: parseInt(cell.dataset.y)
+                                };
+                            }
                         }
                     }
                 });
@@ -886,12 +960,55 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
                 
+                cell.addEventListener('mousemove', (e) => {
+                    if (conwayGame.isSetup && conwayGame.isMouseDown) {
+                        if (conwayGame.mode === 'draw' && !conwayGame.selectedPattern) {
+                            toggleCell(cell);
+                        } else if (conwayGame.mode === 'stamp' && conwayGame.stampMode.isSelecting) {
+                            // Update selection end point
+                            conwayGame.stampMode.selectionEnd = {
+                                x: parseInt(cell.dataset.x),
+                                y: parseInt(cell.dataset.y)
+                            };
+                            updateStampSelection();
+                        }
+                    }
+                });
+                
+                cell.addEventListener('mouseup', () => {
+                    if (conwayGame.mode === 'stamp' && conwayGame.stampMode.isSelecting) {
+                        // Finalize selection
+                        conwayGame.stampMode.isSelecting = false;
+                        if (conwayGame.stampMode.selectionStart && conwayGame.stampMode.selectionEnd) {
+                            captureStamp();
+                        } else {
+                            // Clear selection if no valid selection was made
+                            document.querySelectorAll('.conway-cell').forEach(cell => {
+                                cell.classList.remove('selecting');
+                            });
+                        }
+                    }
+                    conwayGame.isMouseDown = false;
+                });
+                
                 gameGrid.appendChild(cell);
             }
         }
         
         // Add mouseup event listener to document to handle mouse release anywhere
         document.addEventListener('mouseup', () => {
+            if (conwayGame.mode === 'stamp' && conwayGame.stampMode.isSelecting) {
+                // Finalize selection
+                conwayGame.stampMode.isSelecting = false;
+                if (conwayGame.stampMode.selectionStart && conwayGame.stampMode.selectionEnd) {
+                    captureStamp();
+                } else {
+                    // Clear selection if no valid selection was made
+                    document.querySelectorAll('.conway-cell').forEach(cell => {
+                        cell.classList.remove('selecting');
+                    });
+                }
+            }
             conwayGame.isMouseDown = false;
         });
         
@@ -1043,4 +1160,184 @@ document.addEventListener('DOMContentLoaded', () => {
         addLine(output, `> Game Over!`);
         addLine(output, `> Type 'conway' to play again or 'help' for other commands.`);
     }
+
+    // Add these new functions for stamp tool functionality
+    function updateStampSelection() {
+        // Clear previous selection visual
+        document.querySelectorAll('.conway-cell').forEach(cell => {
+            cell.classList.remove('selecting');
+        });
+
+        if (!conwayGame.stampMode.selectionStart || !conwayGame.stampMode.selectionEnd) return;
+
+        // Calculate selection bounds
+        const minX = Math.min(conwayGame.stampMode.selectionStart.x, conwayGame.stampMode.selectionEnd.x);
+        const maxX = Math.max(conwayGame.stampMode.selectionStart.x, conwayGame.stampMode.selectionEnd.x);
+        const minY = Math.min(conwayGame.stampMode.selectionStart.y, conwayGame.stampMode.selectionEnd.y);
+        const maxY = Math.max(conwayGame.stampMode.selectionStart.y, conwayGame.stampMode.selectionEnd.y);
+
+        // Add selection visual to cells within bounds
+        document.querySelectorAll('.conway-cell').forEach(cell => {
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+            if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+                cell.classList.add('selecting');
+            }
+        });
+    }
+
+    function captureStamp() {
+        if (!conwayGame.stampMode.selectionStart || !conwayGame.stampMode.selectionEnd) return;
+
+        // Calculate selection bounds
+        const minX = Math.min(conwayGame.stampMode.selectionStart.x, conwayGame.stampMode.selectionEnd.x);
+        const maxX = Math.max(conwayGame.stampMode.selectionStart.x, conwayGame.stampMode.selectionEnd.x);
+        const minY = Math.min(conwayGame.stampMode.selectionStart.y, conwayGame.stampMode.selectionEnd.y);
+        const maxY = Math.max(conwayGame.stampMode.selectionStart.y, conwayGame.stampMode.selectionEnd.y);
+
+        // Collect live cells within selection
+        const selectedCells = new Set();
+        for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
+                const cellKey = `${x},${y}`;
+                if (conwayGame.grid.has(cellKey)) {
+                    selectedCells.add(cellKey);
+                }
+            }
+        }
+
+        // If no cells selected, abort
+        if (selectedCells.size === 0) {
+            conwayGame.stampMode.currentStamp = null;
+            return;
+        }
+
+        // Find the minimal bounds of the selected pattern
+        let stampMinX = Infinity, stampMaxX = -Infinity;
+        let stampMinY = Infinity, stampMaxY = -Infinity;
+
+        selectedCells.forEach(cellKey => {
+            const [x, y] = cellKey.split(',').map(Number);
+            stampMinX = Math.min(stampMinX, x);
+            stampMaxX = Math.max(stampMaxX, x);
+            stampMinY = Math.min(stampMinY, y);
+            stampMaxY = Math.max(stampMaxY, y);
+        });
+
+        // Create minimized stamp pattern
+        const stampPattern = [];
+        for (let y = stampMinY; y <= stampMaxY; y++) {
+            const row = [];
+            for (let x = stampMinX; x <= stampMaxX; x++) {
+                row.push(selectedCells.has(`${x},${y}`) ? 1 : 0);
+            }
+            stampPattern.push(row);
+        }
+
+        // Store the stamp
+        conwayGame.stampMode.currentStamp = stampPattern;
+
+        // Clear selection visual
+        document.querySelectorAll('.conway-cell').forEach(cell => {
+            cell.classList.remove('selecting');
+        });
+
+        // Update instructions
+        const instructions = document.querySelector('.game-instructions');
+        instructions.textContent = '> Click anywhere to paste the stamp pattern. Press ESC or switch tools to cancel.';
+
+        // Change stamp button icon to check mark temporarily
+        const stampButton = document.querySelector('button[title="Stamp Tool"]');
+        if (stampButton) {
+            const originalIcon = stampButton.innerHTML;
+            stampButton.innerHTML = '✓';
+            // Add a temporary success style
+            stampButton.style.backgroundColor = 'var(--primary-color)';
+            stampButton.style.color = 'var(--background-color)';
+            
+            // Revert back after 2 seconds
+            setTimeout(() => {
+                stampButton.innerHTML = originalIcon;
+                stampButton.style.backgroundColor = '';
+                stampButton.style.color = '';
+            }, 2000);
+        }
+    }
+
+    function pasteStamp(centerX, centerY) {
+        if (!conwayGame.stampMode.currentStamp) return;
+
+        const pattern = conwayGame.stampMode.currentStamp;
+        const offsetX = Math.floor(pattern[0].length / 2);
+        const offsetY = Math.floor(pattern.length / 2);
+
+        for (let y = 0; y < pattern.length; y++) {
+            for (let x = 0; x < pattern[y].length; x++) {
+                if (pattern[y][x]) {
+                    const gridX = centerX - offsetX + x;
+                    const gridY = centerY - offsetY + y;
+                    const cellKey = `${gridX},${gridY}`;
+                    conwayGame.grid.set(cellKey, true);
+                }
+            }
+        }
+
+        renderConwayGame();
+    }
+
+    // Add ESC key handler to cancel stamp mode
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (conwayGame.isRunning) {
+                if (conwayGame.mode === 'stamp') {
+                    // Clear stamp mode
+                    conwayGame.stampMode.isSelecting = false;
+                    conwayGame.stampMode.currentStamp = null;
+                    conwayGame.stampMode.selectionStart = null;
+                    conwayGame.stampMode.selectionEnd = null;
+                    // Clear selection visual
+                    document.querySelectorAll('.conway-cell').forEach(cell => {
+                        cell.classList.remove('selecting');
+                    });
+                    // Update instructions
+                    const instructions = document.querySelector('.game-instructions');
+                    instructions.textContent = '> Click and drag to select cells for stamping.';
+                } else {
+                    stopConwayGame();
+                }
+            }
+        }
+    });
+
+    // Add styles to the document
+    const style = document.createElement('style');
+    style.textContent = `
+        .terminal {
+            background-color: var(--background-color);
+            color: var(--primary-color);
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Add new styles for stamp tool */
+        .conway-cell.selecting {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--primary-color);
+        }
+
+        .conway-cell.selecting.alive {
+            background-color: var(--primary-color);
+            opacity: 0.7;
+        }
+
+        /* Existing styles... */
+    `;
+    document.head.appendChild(style);
 }); 
