@@ -15,14 +15,44 @@
             <h1 class="glitch" data-text="MATT TORONTO">MATT TORONTO</h1>
         </div>
         
-        <div class="terminal">
+        <nav class="retro-nav">
+            <button class="retro-btn" data-section="about">ABOUT</button>
+            <button class="retro-btn" data-section="experience">EXPERIENCE</button>
+            <button class="retro-btn" data-section="projects">PROJECTS</button>
+            <button class="retro-btn" data-section="contact">CONTACT</button>
+        </nav>
+
+        <div class="terminal" id="terminal">
             <div class="terminal-header">
                 <span class="terminal-title">coder@terminal:~$</span>
             </div>
             <div class="terminal-content">
-                <p class="typewriter">> Welcome to my digital space</p>
-                <p class="typewriter">> I build rad things with code</p>
-                <p class="typewriter">> Let's create something awesome together</p>
+                <div class="terminal-output">
+                    <p class="terminal-line">> Welcome to my digital space</p>
+                    <p class="terminal-line">> Type 'help' to see available commands</p>
+                </div>
+                <div class="terminal-input">
+                    <span class="prompt">coder@terminal:~$</span>
+                    <input type="text" class="command-input" autofocus>
+                </div>
+            </div>
+        </div>
+
+        <div class="retro-grid" id="projects" style="display: none;">
+            <div class="retro-card">
+                <h3>AI Leads</h3>
+                <p>AI Agent for B2B Lead Generation</p>
+                <a href="https://github.com/mrtoronto/ai-leads" target="_blank" class="retro-link">View Project</a>
+            </div>
+            <div class="retro-card">
+                <h3>Web3HFT</h3>
+                <p>High-Frequency Trading Bot</p>
+                <a href="https://github.com/mrtoronto/web3_hft" target="_blank" class="retro-link">View Project</a>
+            </div>
+            <div class="retro-card">
+                <h3>Cover Letter Generator</h3>
+                <p>LLM-Powered Cover Letter Creation</p>
+                <a href="https://mrtoronto.github.io/cover-letter-generator/" target="_blank" class="retro-link">View Project</a>
             </div>
         </div>
 
@@ -31,7 +61,10 @@
                 <span class="social-icon">👾</span>
                 <span class="social-text">GitHub</span>
             </a>
-            <!-- Add more social links as needed -->
+            <a href="https://www.linkedin.com/in/matthewtoronto/" target="_blank" class="social-link">
+                <span class="social-icon">💼</span>
+                <span class="social-text">LinkedIn</span>
+            </a>
         </div>
 
         <div class="wave-container">
@@ -40,6 +73,7 @@
             <div class="wave"></div>
         </div>
     </div>
+    <audio id="click-sound" src="click.wav" preload="auto"></audio>
     <script src="script.js"></script>
 </body>
 </html> 

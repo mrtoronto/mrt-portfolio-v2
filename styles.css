@@ -3,6 +3,9 @@
     --secondary-color: #00b8ff;
     --background-color: #0a0a0a;
     --text-color: #ffffff;
+    --retro-border: 2px solid var(--primary-color);
+    --retro-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+    --terminal-height: 400px;
 }
 
 * {
@@ -16,7 +19,9 @@ body {
     color: var(--text-color);
     font-family: 'VT323', monospace;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
 
 .container {
@@ -25,11 +30,14 @@ body {
     padding: 2rem;
     position: relative;
     z-index: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .glitch-wrapper {
     text-align: center;
-    margin: 4rem 0;
 }
 
 .glitch {
@@ -54,32 +62,144 @@ body {
     border: 2px solid var(--primary-color);
     border-radius: 8px;
     padding: 1rem;
-    margin: 2rem 0;
+    margin: 1rem 0;
     box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+    height: 70%;
+    display: flex;
+    flex-direction: column;
+    font-family: 'VT323', monospace;
 }
 
 .terminal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
     border-bottom: 1px solid var(--primary-color);
-    padding-bottom: 0.5rem;
     margin-bottom: 1rem;
+    background: rgba(0, 0, 0, 0.8);
 }
 
 .terminal-title {
     color: var(--primary-color);
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+}
+
+.game-controls {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    user-select: none;
+}
+
+.game-controls button {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.25rem;
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-controls button:hover {
+    background: rgba(0, 255, 157, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
+}
+
+.game-controls button:active {
+    background: var(--primary-color);
+    color: var(--background-color);
+    transform: translateY(0);
+}
+
+.game-controls button.active {
+    background: var(--primary-color);
+    color: var(--background-color);
 }
 
 .terminal-content {
     font-size: 1.2rem;
     line-height: 1.6;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
-.typewriter {
+.terminal-output {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+    padding-right: 0.5rem;
+    font-family: 'VT323', monospace;
+    letter-spacing: 2px;
+    order: 0;
+}
+
+.terminal-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminal-output::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.terminal-line {
+    margin: 0.5rem 0;
+    opacity: 1;
+    font-family: 'VT323', monospace;
+    letter-spacing: 2px;
+    transition: opacity 0.3s ease;
+}
+
+.terminal-line.hidden {
+    opacity: 0;
+    height: 0;
+    margin: 0;
     overflow: hidden;
-    border-right: 2px solid var(--primary-color);
-    white-space: nowrap;
-    margin: 0 auto;
-    animation: typing 3.5s steps(40, end),
-               blink-caret 0.75s step-end infinite;
+}
+
+.terminal-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-top: 1px solid rgba(0, 255, 157, 0.2);
+    padding-top: 0.5rem;
+    order: 2;
+}
+
+.prompt {
+    color: var(--primary-color);
+    font-family: 'VT323', monospace;
+}
+
+.command-input {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    flex-grow: 1;
+    outline: none;
+    caret-color: var(--primary-color);
+}
+
+.command-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .social-links {
@@ -190,6 +310,133 @@ body {
     }
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2rem;
+    background-color: var(--primary-color);
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+}
+
+.retro-nav {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.retro-btn {
+    background: transparent;
+    border: var(--retro-border);
+    color: var(--primary-color);
+    padding: 0.5rem 1rem;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+
+.retro-btn:hover {
+    background: var(--primary-color);
+    color: var(--background-color);
+    box-shadow: var(--retro-shadow);
+    transform: translateY(-2px);
+}
+
+.retro-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 157, 0.2), transparent);
+    transition: 0.5s;
+}
+
+.retro-btn:hover::before {
+    left: 100%;
+}
+
+.retro-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.retro-card {
+    background: rgba(0, 0, 0, 0.8);
+    border: var(--retro-border);
+    padding: 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.retro-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--retro-shadow);
+}
+
+.retro-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(0, 255, 157, 0.1), transparent);
+    transform: translateX(-100%);
+    transition: 0.5s;
+}
+
+.retro-card:hover::before {
+    transform: translateX(100%);
+}
+
+.retro-card h3 {
+    color: var(--primary-color);
+    font-family: 'Press Start 2P', cursive;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.retro-card p {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.retro-link {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.retro-link:hover {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
 @media (max-width: 768px) {
     .glitch {
         font-size: 2rem;
@@ -203,4 +450,273 @@ body {
         flex-direction: column;
         align-items: center;
     }
+
+    .retro-nav {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .retro-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .retro-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.game-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.game-instructions {
+    color: var(--primary-color);
+    font-family: 'VT323', monospace;
+    margin-bottom: 1rem;
+}
+
+.conway-main-content {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.conway-grid-container {
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    position: relative;
+    background: var(--background-color);
+    cursor: grab;
+    border: 1px solid var(--primary-color);
+}
+
+.conway-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    gap: 1px;
+    background: var(--background-color);
+    padding: 1px;
+    will-change: transform;
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+}
+
+.conway-cell {
+    width: var(--cell-size, 20px);
+    height: var(--cell-size, 20px);
+    background: var(--background-color);
+    border: 1px solid rgba(0, 255, 157, 0.2);
+    transition: background-color 0.2s ease;
+    position: relative;
+}
+
+.conway-cell:hover {
+    background: rgba(0, 255, 157, 0.2);
+}
+
+.conway-cell.alive {
+    background: var(--primary-color);
+}
+
+.game-score {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.terminal-link {
+    color: var(--secondary-color);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.terminal-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.download-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--primary-color);
+    color: var(--background-color);
+    padding: 15px 25px;
+    border-radius: 5px;
+    font-family: 'VT323', monospace;
+    font-size: 1.2em;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
+    z-index: 1000;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.conway-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 150px;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    position: relative;
+    z-index: 10;
+}
+
+.controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+}
+
+.control-button {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.5rem;
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    width: 100%;
+}
+
+.control-button:hover {
+    background: rgba(0, 255, 157, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
+}
+
+.control-button:active {
+    background: var(--primary-color);
+    color: var(--background-color);
+    transform: translateY(0);
+}
+
+.control-button.active {
+    background: var(--primary-color);
+    color: var(--background-color);
+}
+
+.patterns-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.zoom-controls {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    width: 100%;
+}
+
+.zoom-button {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.5rem;
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+}
+
+.zoom-button:hover {
+    background: rgba(0, 255, 157, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
+}
+
+.zoom-button:active {
+    background: var(--primary-color);
+    color: var(--background-color);
+    transform: translateY(0);
+}
+
+.pattern-button {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 0.5rem;
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    text-transform: capitalize;
+}
+
+.pattern-button:hover {
+    background: rgba(0, 255, 157, 0.1);
+}
+
+.pattern-button.active {
+    background: var(--primary-color);
+    color: var(--background-color);
+} 
+
+
+.conway-cell.alive {
+    background-color: var(--primary-color);
+}
+
+.speed-controls {
+    display: flex;
+    gap: 5px;
+    margin-right: 10px;
+}
+
+.speed-controls .control-button {
+    font-size: 1.2em;
+    padding: 5px 8px;
+}
+
+.speed-controls .control-button.active {
+    background-color: var(--primary-color);
+    color: var(--background-color);
 } 
