@@ -112,6 +112,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Available commands
     const commands = {
+        '?': () => {
+            return [
+                'Available commands:',
+                'help - Show this help message',
+                'clear - Clear the terminal',
+                'about - Show about information',
+                'experience - Show work experience',
+                'projects - Show projects',
+                'contact - Show contact information',
+                'resume - Download my resume',
+                'snake - Play snake game',
+                'conway - Play Conway\'s Game of Life',
+                'exit - Close the terminal'
+            ];
+        },
+
         help: () => {
             return [
                 'Available commands:',
@@ -134,9 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         about: () => {
             return [
-                'Welcome to my digital space',
-                'I build rad things with code',
-                'Let\'s create something awesome together'
+                'This is mrt\'s digital space',
+                'I build rad and cool things with code',
+                'Let\'s create something together'
             ];
         },
         experience: () => {
@@ -238,35 +254,28 @@ document.addEventListener('DOMContentLoaded', () => {
             switch(e.key) {
                 case 'ArrowUp':
                     if (snakeGame.direction !== 'down') snakeGame.nextDirection = 'up';
-                    break;
+                    return;
                 case 'ArrowDown':
                     if (snakeGame.direction !== 'up') snakeGame.nextDirection = 'down';
-                    break;
+                    return;
                 case 'ArrowLeft':
                     if (snakeGame.direction !== 'right') snakeGame.nextDirection = 'left';
-                    break;
+                    return;
                 case 'ArrowRight':
                     if (snakeGame.direction !== 'left') snakeGame.nextDirection = 'right';
-                    break;
+                    return;
                 case 'Escape':
                     stopSnakeGame();
-                    break;
+                    return;
             }
-            return;
         }
 
         if (conwayGame.isRunning) {
             switch(e.key) {
-                case 'Enter':
-                    if (conwayGame.isSetup) {
-                        startConwaySimulation();
-                    }
-                    break;
                 case 'Escape':
                     stopConwayGame();
-                    break;
+                    return;
             }
-            return;
         }
 
         // Handle command history
@@ -303,27 +312,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 addLine(output, `> ${command}`);
                 
                 // Handle command
-                if (command === 'exit') {
-                    // Replace all content with centered gif
-                    const container = document.querySelector('.container');
-                    container.innerHTML = `
-                        <div style="
-                            position: fixed;
-                            top: 0;
-                            left: 0;
-                            right: 0;
-                            bottom: 0;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            background: var(--background-color);
-                            z-index: 1000;
-                        ">
-                            <img src="https://i.pinimg.com/originals/a3/e9/ff/a3e9ffb293d369deb48f22a38f35250b.gif" 
-                                 alt="Exit animation"
-                                 style="max-width: 100%; max-height: 100%;">
-                        </div>
-                    `;
+                if (command === 'exit' || command === 'end' || command === 'leave') {
+                    if (snakeGame.isRunning) {
+                        stopSnakeGame();
+                    } else if (conwayGame.isRunning) {
+                        stopConwayGame();
+                    } else {
+                        // Replace all content with centered gif
+                        const container = document.querySelector('.container');
+                        container.innerHTML = `
+                            <div style="
+                                position: fixed;
+                                top: 0;
+                                left: 0;
+                                right: 0;
+                                bottom: 0;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                background: var(--background-color);
+                                z-index: 1000;
+                            ">
+                                <img src="https://i.pinimg.com/originals/a3/e9/ff/a3e9ffb293d369deb48f22a38f35250b.gif" 
+                                     alt="Exit animation"
+                                     style="max-width: 100%; max-height: 100%;">
+                            </div>
+                        `;
+                    }
                 } else if (commands[command]) {
                     const response = commands[command]();
                     response.forEach(line => {
@@ -449,13 +464,88 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Snake game functions
-    function startSnakeGame() {
-        snakeGame.isRunning = true;
-        snakeGame.snake = [{x: 10, y: 10}];
-        snakeGame.direction = 'right';
-        snakeGame.nextDirection = 'right';
-        snakeGame.score = 0;
-        
+    function showSnakeInstructions() {
+        // Create overlay container
+        const overlay = document.createElement('div');
+        overlay.className = 'snake-instructions-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            font-family: 'VT323', monospace;
+            color: var(--primary-color);
+            text-align: center;
+            padding: 2rem;
+        `;
+
+        // Create title
+        const title = document.createElement('h1');
+        title.textContent = 'Snake';
+        title.style.cssText = `
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px var(--primary-color);
+        `;
+
+        // Create instructions
+        const instructions = document.createElement('div');
+        instructions.style.cssText = `
+            font-size: 1.5rem;
+            line-height: 2;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        `;
+        instructions.innerHTML = `
+            <p>Use arrow keys to control the snake</p>
+            <p>Eat the food (●) to grow longer</p>
+            <p>Avoid hitting the walls or yourself</p>
+            <p>Press ESC to quit</p>
+        `;
+
+        // Create start button
+        const startButton = document.createElement('button');
+        startButton.textContent = 'Start Game';
+        startButton.style.cssText = `
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'VT323', monospace;
+        `;
+        startButton.addEventListener('mouseover', () => {
+            startButton.style.background = 'var(--primary-color)';
+            startButton.style.color = 'var(--background-color)';
+        });
+        startButton.addEventListener('mouseout', () => {
+            startButton.style.background = 'transparent';
+            startButton.style.color = 'var(--primary-color)';
+        });
+        startButton.addEventListener('click', () => {
+            overlay.remove();
+            initializeSnakeGame();
+        });
+
+        // Add elements to overlay
+        overlay.appendChild(title);
+        overlay.appendChild(instructions);
+        overlay.appendChild(startButton);
+
+        // Add to document
+        document.body.appendChild(overlay);
+    }
+
+    function initializeSnakeGame() {
         // Clear terminal output
         const output = document.querySelector('.terminal-output');
         output.innerHTML = '';
@@ -464,12 +554,6 @@ document.addEventListener('DOMContentLoaded', () => {
         snakeGame.gameContainer = document.createElement('div');
         snakeGame.gameContainer.className = 'snake-game-container';
         output.appendChild(snakeGame.gameContainer);
-        
-        // Create instructions first
-        const instructions = document.createElement('div');
-        instructions.className = 'game-instructions';
-        instructions.textContent = '> Use arrow keys to control the snake. Press ESC to quit.';
-        snakeGame.gameContainer.appendChild(instructions);
         
         // Create game grid
         const gameGrid = document.createElement('div');
@@ -496,6 +580,16 @@ document.addEventListener('DOMContentLoaded', () => {
         generateFood();
         renderGame();
         snakeGame.interval = setInterval(updateSnakeGame, snakeGame.speed);
+    }
+
+    function startSnakeGame() {
+        snakeGame.isRunning = true;
+        snakeGame.snake = [{x: 10, y: 10}];
+        snakeGame.direction = 'right';
+        snakeGame.nextDirection = 'right';
+        snakeGame.score = 0;
+        
+        showSnakeInstructions();
     }
 
     function stopSnakeGame() {
@@ -598,21 +692,87 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Conway's Game of Life functions
-    function startConwayGame() {
-        conwayGame.isRunning = true;
-        conwayGame.isSetup = true;
-        conwayGame.grid = new Map();
-        conwayGame.selectedCells.clear();
-        conwayGame.isDragging = false;
-        conwayGame.lastDraggedCell = null;
-        conwayGame.selectedPattern = null;
-        conwayGame.zoomLevel = 1;
-        conwayGame.isPanning = false;
-        conwayGame.panOffsetX = 0;
-        conwayGame.panOffsetY = 0;
-        conwayGame.mode = 'pan'; // Default to pan mode
-        conwayGame.isMouseDown = false; // Track mouse button state
-        
+    function showConwayInstructions() {
+        // Create overlay container
+        const overlay = document.createElement('div');
+        overlay.className = 'conway-instructions-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--background-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            font-family: 'VT323', monospace;
+            color: var(--primary-color);
+            text-align: center;
+            padding: 2rem;
+        `;
+
+        // Create title
+        const title = document.createElement('h1');
+        title.textContent = 'Conway\'s Game of Life';
+        title.style.cssText = `
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px var(--primary-color);
+        `;
+
+        // Create instructions
+        const instructions = document.createElement('div');
+        instructions.style.cssText = `
+            font-size: 1.5rem;
+            line-height: 2;
+            margin-bottom: 2rem;
+            max-width: 600px;
+        `;
+        instructions.innerHTML = `
+            <p>Click or drag to toggle cells alive/dead</p>
+            <p>Use the play button to start the simulation</p>
+            <p>Type exit to quit</p>
+        `;
+
+        // Create start button
+        const startButton = document.createElement('button');
+        startButton.textContent = 'Start Game';
+        startButton.style.cssText = `
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'VT323', monospace;
+        `;
+        startButton.addEventListener('mouseover', () => {
+            startButton.style.background = 'var(--primary-color)';
+            startButton.style.color = 'var(--background-color)';
+        });
+        startButton.addEventListener('mouseout', () => {
+            startButton.style.background = 'transparent';
+            startButton.style.color = 'var(--primary-color)';
+        });
+        startButton.addEventListener('click', () => {
+            overlay.remove();
+            initializeConwayGame();
+        });
+
+        // Add elements to overlay
+        overlay.appendChild(title);
+        overlay.appendChild(instructions);
+        overlay.appendChild(startButton);
+
+        // Add to document
+        document.body.appendChild(overlay);
+    }
+
+    function initializeConwayGame() {
         // Clear terminal output
         const output = document.querySelector('.terminal-output');
         output.innerHTML = '';
@@ -621,12 +781,6 @@ document.addEventListener('DOMContentLoaded', () => {
         conwayGame.gameContainer = document.createElement('div');
         conwayGame.gameContainer.className = 'game-container';
         output.appendChild(conwayGame.gameContainer);
-        
-        // Create instructions
-        const instructions = document.createElement('div');
-        instructions.className = 'game-instructions';
-        instructions.textContent = '> Click or drag to toggle cells alive/dead. Click a pattern to place it. Press ENTER to start.';
-        conwayGame.gameContainer.appendChild(instructions);
         
         // Create main content container
         const mainContent = document.createElement('div');
@@ -652,12 +806,35 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Create controls in terminal header
         const terminalHeader = document.querySelector('.terminal-header');
+        terminalHeader.innerHTML = ''; // Clear any existing content
         const gameControls = document.createElement('div');
         gameControls.className = 'game-controls';
+
+        // Left zoom controls
+        const leftZoomControls = document.createElement('div');
+        leftZoomControls.className = 'zoom-controls left';
+        const zoomOutButton = document.createElement('button');
+        zoomOutButton.className = 'control-button';
+        zoomOutButton.innerHTML = '🔍';
+        zoomOutButton.title = 'Zoom Out';
+        zoomOutButton.addEventListener('click', () => {
+            conwayGame.zoomLevel = Math.max(conwayGame.minZoom, conwayGame.zoomLevel - conwayGame.zoomStep);
+            updateZoom();
+        });
+        leftZoomControls.appendChild(zoomOutButton);
+        gameControls.appendChild(leftZoomControls);
         
-        // Speed controls
-        const speedControls = document.createElement('div');
-        speedControls.className = 'speed-controls';
+        // Speed dropdown
+        const speedDropdown = document.createElement('div');
+        speedDropdown.className = 'dropdown';
+        const speedButton = document.createElement('button');
+        speedButton.innerHTML = '🐢';
+        speedButton.className = 'control-button';
+        speedButton.title = 'Speed Settings';
+        speedDropdown.appendChild(speedButton);
+        
+        const speedContent = document.createElement('div');
+        speedContent.className = 'dropdown-content';
         
         const speeds = [
             { value: 0.5, emoji: '🐢' },
@@ -668,32 +845,33 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         
         speeds.forEach(speed => {
-            const speedButton = document.createElement('button');
-            speedButton.className = 'control-button' + (speed.value === 1 ? ' active' : '');
-            speedButton.innerHTML = speed.emoji;
-            speedButton.title = `${speed.value}x Speed`;
-            speedButton.addEventListener('click', () => {
-                // Update active state
-                document.querySelectorAll('.speed-controls .control-button').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                speedButton.classList.add('active');
-                
-                // Update game speed
-                conwayGame.speed = 200 / speed.value; // Base speed is 200ms
+            const speedOption = document.createElement('button');
+            speedOption.innerHTML = `<span>${speed.emoji}</span> ${speed.value}x`;
+            speedOption.addEventListener('click', () => {
+                conwayGame.speed = 200 / speed.value;
                 if (conwayGame.interval) {
                     clearInterval(conwayGame.interval);
                     conwayGame.interval = setInterval(updateConwayGame, conwayGame.speed);
                 }
+                speedButton.innerHTML = `<span>${speed.emoji}</span>`;
+                speedContent.classList.remove('show');
             });
-            speedControls.appendChild(speedButton);
+            speedContent.appendChild(speedOption);
         });
         
-        gameControls.appendChild(speedControls);
+        speedDropdown.appendChild(speedContent);
+        gameControls.appendChild(speedDropdown);
+
+        // Add click handler for speed dropdown
+        speedButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            speedContent.classList.toggle('show');
+            patternsContent.classList.remove('show');
+        });
         
         // Draw tool button
         const drawButton = document.createElement('button');
-        drawButton.className = 'control-button active';
+        drawButton.className = 'control-button active'; // Set active by default
         drawButton.innerHTML = '🧬';
         drawButton.title = 'Draw Tool';
         drawButton.addEventListener('click', (e) => {
@@ -701,132 +879,64 @@ document.addEventListener('DOMContentLoaded', () => {
             const isActive = drawButton.classList.toggle('active');
             conwayGame.mode = isActive ? 'draw' : 'pan';
             gridContainer.style.cursor = isActive ? 'crosshair' : 'default';
-            // Clear stamp when switching tools
+            
+            // Clear any selected pattern when turning off draw mode
+            if (!isActive) {
+                conwayGame.selectedPattern = null;
+                patternsButton.innerHTML = '🔲';
+            }
+            
             if (conwayGame.stampMode.currentStamp) {
                 conwayGame.stampMode.currentStamp = null;
                 conwayGame.stampMode.isActive = false;
             }
-            // Deactivate stamp button
             const stampButton = document.querySelector('button[title="Stamp Tool"]');
             if (stampButton) {
                 stampButton.classList.remove('active');
             }
+            speedContent.classList.remove('show');
+            patternsContent.classList.remove('show');
         });
         gameControls.appendChild(drawButton);
 
-        // Add Stamp tool button
+        // Stamp tool button
         const stampButton = document.createElement('button');
-        stampButton.className = 'control-button';
+        stampButton.className = 'control-button hide-on-mobile';
         stampButton.innerHTML = '📍';
         stampButton.title = 'Stamp Tool';
         stampButton.addEventListener('click', (e) => {
             e.stopPropagation();
             const isActive = stampButton.classList.toggle('active');
-            // Deactivate other tools
             drawButton.classList.remove('active');
             conwayGame.mode = isActive ? 'stamp' : 'pan';
             gridContainer.style.cursor = isActive ? 'crosshair' : 'default';
-            // Reset stamp mode state
             conwayGame.stampMode.isActive = isActive;
             conwayGame.stampMode.isSelecting = false;
             conwayGame.stampMode.selectionStart = null;
             conwayGame.stampMode.selectionEnd = null;
             conwayGame.stampMode.currentStamp = null;
-            // Clear any existing selection visual
             document.querySelectorAll('.conway-cell').forEach(cell => {
                 cell.classList.remove('selecting');
             });
+            speedContent.classList.remove('show');
+            patternsContent.classList.remove('show');
         });
         gameControls.appendChild(stampButton);
         
-        // Set initial mode to draw
-        conwayGame.mode = 'draw';
-        gridContainer.style.cursor = 'crosshair';
-        drawButton.classList.add('active');
+        // Patterns dropdown
+        const patternsDropdown = document.createElement('div');
+        patternsDropdown.className = 'dropdown';
+        const patternsButton = document.createElement('button');
+        patternsButton.innerHTML = '🔲';
+        patternsButton.title = 'Patterns';
+        patternsButton.className = 'control-button';
+        patternsDropdown.appendChild(patternsButton);
         
-        // Play/Pause button
-        const playPauseButton = document.createElement('button');
-        playPauseButton.className = 'control-button';
-        playPauseButton.innerHTML = '▶️';
-        playPauseButton.title = 'Play/Pause';
-        playPauseButton.addEventListener('click', () => {
-            if (conwayGame.isSetup) {
-                // Start simulation
-                startConwaySimulation();
-                playPauseButton.innerHTML = '⏸️';
-            } else {
-                // Toggle pause
-                if (conwayGame.interval) {
-                    clearInterval(conwayGame.interval);
-                    conwayGame.interval = null;
-                    playPauseButton.innerHTML = '▶️';
-                    // Allow drawing when paused
-                    conwayGame.isSetup = true;
-                    // Update instructions
-                    const instructions = document.querySelector('.game-instructions');
-                    instructions.textContent = '> Click or drag to toggle cells alive/dead. Click a pattern to place it. Press Play to continue.';
-                } else {
-                    conwayGame.interval = setInterval(updateConwayGame, conwayGame.speed);
-                    playPauseButton.innerHTML = '⏸️';
-                    // Disable drawing when playing
-                    conwayGame.isSetup = false;
-                    // Update instructions
-                    const instructions = document.querySelector('.game-instructions');
-                    instructions.textContent = '> Press ESC to quit.';
-                }
-            }
-        });
-        gameControls.appendChild(playPauseButton);
+        const patternsContent = document.createElement('div');
+        patternsContent.className = 'dropdown-content';
         
-        // Zoom controls
-        const zoomOutBtn = document.createElement('button');
-        zoomOutBtn.className = 'zoom-button';
-        zoomOutBtn.innerHTML = '🔍';
-        zoomOutBtn.title = 'Zoom Out';
-        let zoomInterval;
-        
-        const startZoom = (direction) => {
-            const zoom = () => {
-                if (direction === 'out' && conwayGame.zoomLevel > conwayGame.minZoom) {
-                    conwayGame.zoomLevel -= conwayGame.zoomStep;
-                    updateZoom();
-                } else if (direction === 'in' && conwayGame.zoomLevel < conwayGame.maxZoom) {
-                    conwayGame.zoomLevel += conwayGame.zoomStep;
-                    updateZoom();
-                }
-            };
-            
-            // Initial zoom
-            zoom();
-            
-            // Start interval for continuous zoom
-            zoomInterval = setInterval(zoom, 100);
-        };
-        
-        const stopZoom = () => {
-            clearInterval(zoomInterval);
-        };
-        
-        zoomOutBtn.addEventListener('mousedown', () => startZoom('out'));
-        zoomOutBtn.addEventListener('mouseup', stopZoom);
-        zoomOutBtn.addEventListener('mouseleave', stopZoom);
-        
-        const zoomInBtn = document.createElement('button');
-        zoomInBtn.className = 'zoom-button';
-        zoomInBtn.innerHTML = '🔎';
-        zoomInBtn.title = 'Zoom In';
-        
-        zoomInBtn.addEventListener('mousedown', () => startZoom('in'));
-        zoomInBtn.addEventListener('mouseup', stopZoom);
-        zoomInBtn.addEventListener('mouseleave', stopZoom);
-        
-        gameControls.appendChild(zoomOutBtn);
-        gameControls.appendChild(zoomInBtn);
-        
-        // Pattern buttons
         Object.entries(conwayPatterns).forEach(([name, pattern]) => {
-            const patternButton = document.createElement('button');
-            patternButton.className = 'pattern-button';
+            const patternOption = document.createElement('button');
             const emoji = {
                 'glider': '🚀',
                 'lightweightSpaceship': '🛸',
@@ -835,21 +945,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 'beacon': '💡',
                 'toad': '🐸'
             }[name] || '🔲';
-            patternButton.innerHTML = emoji;
-            patternButton.title = name;
-            patternButton.addEventListener('click', () => {
+            patternOption.innerHTML = `<span>${emoji}</span> ${name}`;
+            patternOption.addEventListener('click', () => {
                 conwayGame.selectedPattern = pattern;
-                document.querySelectorAll('.pattern-button').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                patternButton.classList.add('active');
-                
-                // Automatically select draw mode when a pattern is selected
+                patternsButton.innerHTML = emoji;
                 drawButton.classList.add('active');
                 conwayGame.mode = 'draw';
                 gridContainer.style.cursor = 'crosshair';
-
-                // Deactivate stamp mode and button
                 const stampButton = document.querySelector('button[title="Stamp Tool"]');
                 if (stampButton) {
                     stampButton.classList.remove('active');
@@ -859,20 +961,147 @@ document.addEventListener('DOMContentLoaded', () => {
                 conwayGame.stampMode.isSelecting = false;
                 conwayGame.stampMode.selectionStart = null;
                 conwayGame.stampMode.selectionEnd = null;
-                // Clear any existing selection visual
                 document.querySelectorAll('.conway-cell').forEach(cell => {
                     cell.classList.remove('selecting');
                 });
+                patternsContent.classList.remove('show');
             });
-            gameControls.appendChild(patternButton);
+            patternsContent.appendChild(patternOption);
         });
         
-        // Remove any existing game controls
-        const existingControls = terminalHeader.querySelector('.game-controls');
-        if (existingControls) {
-            existingControls.remove();
-        }
+        patternsDropdown.appendChild(patternsContent);
+        gameControls.appendChild(patternsDropdown);
+
+        // Add click handler for patterns dropdown
+        patternsButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            patternsContent.classList.toggle('show');
+            speedContent.classList.remove('show');
+        });
+        
+        // Play/Pause button
+        const playPauseButton = document.createElement('button');
+        playPauseButton.className = 'control-button';
+        playPauseButton.innerHTML = '▶️';
+        playPauseButton.title = 'Play/Pause';
+        playPauseButton.addEventListener('click', () => {
+            if (conwayGame.isSetup) {
+                startConwaySimulation();
+                playPauseButton.innerHTML = '⏸️';
+            } else {
+                if (conwayGame.interval) {
+                    clearInterval(conwayGame.interval);
+                    conwayGame.interval = null;
+                    playPauseButton.innerHTML = '▶️';
+                    conwayGame.isSetup = true;
+                } else {
+                    conwayGame.interval = setInterval(updateConwayGame, conwayGame.speed);
+                    playPauseButton.innerHTML = '⏸️';
+                    conwayGame.isSetup = false;
+                }
+            }
+            speedContent.classList.remove('show');
+            patternsContent.classList.remove('show');
+        });
+        gameControls.appendChild(playPauseButton);
+
+        // Right zoom controls
+        const rightZoomControls = document.createElement('div');
+        rightZoomControls.className = 'zoom-controls right';
+        const zoomInButton = document.createElement('button');
+        zoomInButton.className = 'control-button';
+        zoomInButton.innerHTML = '🔎';
+        zoomInButton.title = 'Zoom In';
+        zoomInButton.addEventListener('click', () => {
+            conwayGame.zoomLevel = Math.min(conwayGame.maxZoom, conwayGame.zoomLevel + conwayGame.zoomStep);
+            updateZoom();
+        });
+        rightZoomControls.appendChild(zoomInButton);
+        gameControls.appendChild(rightZoomControls);
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!speedDropdown.contains(e.target)) {
+                speedContent.classList.remove('show');
+            }
+            if (!patternsDropdown.contains(e.target)) {
+                patternsContent.classList.remove('show');
+            }
+        });
+
+        // Fix draw mode functionality
+        gridContainer.addEventListener('mousedown', (e) => {
+            if (conwayGame.mode === 'draw' && conwayGame.isSetup) {
+                conwayGame.isMouseDown = true;
+                const cell = e.target.closest('.conway-cell');
+                if (cell) {
+                    toggleCell(cell);
+                }
+            }
+        });
+
+        gridContainer.addEventListener('mousemove', (e) => {
+            if (conwayGame.mode === 'draw' && conwayGame.isSetup && conwayGame.isMouseDown) {
+                const cell = e.target.closest('.conway-cell');
+                if (cell) {
+                    toggleCell(cell);
+                }
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            conwayGame.isMouseDown = false;
+        });
+
+        // Add touch events for mobile
+        gridContainer.addEventListener('touchstart', (e) => {
+            if (conwayGame.mode === 'draw' && conwayGame.isSetup) {
+                conwayGame.isMouseDown = true;
+                const cell = document.elementFromPoint(
+                    e.touches[0].clientX,
+                    e.touches[0].clientY
+                )?.closest('.conway-cell');
+                if (cell) {
+                    toggleCell(cell);
+                }
+            }
+        });
+
+        gridContainer.addEventListener('touchmove', (e) => {
+            if (conwayGame.mode === 'draw' && conwayGame.isSetup && conwayGame.isMouseDown) {
+                const cell = document.elementFromPoint(
+                    e.touches[0].clientX,
+                    e.touches[0].clientY
+                )?.closest('.conway-cell');
+                if (cell) {
+                    toggleCell(cell);
+                }
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            conwayGame.isMouseDown = false;
+        });
+        
         terminalHeader.appendChild(gameControls);
+    }
+
+    function startConwayGame() {
+        conwayGame.isRunning = true;
+        conwayGame.isSetup = true;
+        conwayGame.grid = new Map();
+        conwayGame.selectedCells.clear();
+        conwayGame.isDragging = false;
+        conwayGame.lastDraggedCell = null;
+        conwayGame.selectedPattern = null;
+        conwayGame.zoomLevel = 1;
+        conwayGame.isPanning = false;
+        conwayGame.panOffsetX = 0;
+        conwayGame.panOffsetY = 0;
+        conwayGame.mode = 'draw'; // Set draw mode as default
+        conwayGame.isMouseDown = false;
+        
+        showConwayInstructions();
     }
 
     function updateZoom() {
@@ -949,28 +1178,77 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                 });
-                
-                cell.addEventListener('mouseenter', () => {
-                    if (conwayGame.isSetup && conwayGame.isMouseDown && conwayGame.mode === 'draw') {
-                        if (conwayGame.selectedPattern) {
-                            placePattern(parseInt(cell.dataset.x), parseInt(cell.dataset.y), conwayGame.selectedPattern);
-                        } else {
-                            toggleCell(cell);
+
+                // Add touch event handlers for mobile
+                cell.addEventListener('touchstart', (e) => {
+                    if (conwayGame.isSetup) {
+                        e.preventDefault();
+                        conwayGame.isMouseDown = true;
+                        if (conwayGame.mode === 'draw') {
+                            if (conwayGame.selectedPattern) {
+                                placePattern(parseInt(cell.dataset.x), parseInt(cell.dataset.y), conwayGame.selectedPattern);
+                            } else {
+                                toggleCell(cell);
+                            }
+                        } else if (conwayGame.mode === 'stamp') {
+                            if (conwayGame.stampMode.currentStamp) {
+                                // Paste the stamp
+                                const x = parseInt(cell.dataset.x);
+                                const y = parseInt(cell.dataset.y);
+                                pasteStamp(x, y);
+                            } else {
+                                // Start selection
+                                conwayGame.stampMode.isSelecting = true;
+                                conwayGame.stampMode.selectionStart = {
+                                    x: parseInt(cell.dataset.x),
+                                    y: parseInt(cell.dataset.y)
+                                };
+                            }
                         }
                     }
                 });
-                
-                cell.addEventListener('mousemove', (e) => {
+
+                cell.addEventListener('mouseenter', () => {
                     if (conwayGame.isSetup && conwayGame.isMouseDown) {
-                        if (conwayGame.mode === 'draw' && !conwayGame.selectedPattern) {
-                            toggleCell(cell);
+                        if (conwayGame.mode === 'draw') {
+                            if (conwayGame.selectedPattern) {
+                                placePattern(parseInt(cell.dataset.x), parseInt(cell.dataset.y), conwayGame.selectedPattern);
+                            } else {
+                                toggleCell(cell);
+                            }
                         } else if (conwayGame.mode === 'stamp' && conwayGame.stampMode.isSelecting) {
                             // Update selection end point
                             conwayGame.stampMode.selectionEnd = {
                                 x: parseInt(cell.dataset.x),
                                 y: parseInt(cell.dataset.y)
                             };
+                            // Update selection visualization
                             updateStampSelection();
+                        }
+                    }
+                });
+
+                cell.addEventListener('touchmove', (e) => {
+                    if (conwayGame.isSetup && conwayGame.isMouseDown) {
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        const targetCell = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.conway-cell');
+                        if (targetCell) {
+                            if (conwayGame.mode === 'draw') {
+                                if (conwayGame.selectedPattern) {
+                                    placePattern(parseInt(targetCell.dataset.x), parseInt(targetCell.dataset.y), conwayGame.selectedPattern);
+                                } else {
+                                    toggleCell(targetCell);
+                                }
+                            } else if (conwayGame.mode === 'stamp' && conwayGame.stampMode.isSelecting) {
+                                // Update selection end point
+                                conwayGame.stampMode.selectionEnd = {
+                                    x: parseInt(targetCell.dataset.x),
+                                    y: parseInt(targetCell.dataset.y)
+                                };
+                                // Update selection visualization
+                                updateStampSelection();
+                            }
                         }
                     }
                 });
@@ -1079,10 +1357,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function startConwaySimulation() {
         conwayGame.isSetup = false;
         
-        // Update instructions
-        const instructions = document.querySelector('.game-instructions');
-        instructions.textContent = '> Press ESC to quit.';
-        
         // Start simulation
         conwayGame.interval = setInterval(updateConwayGame, conwayGame.speed);
         
@@ -1153,6 +1427,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameControls = document.querySelector('.game-controls');
         if (gameControls) {
             gameControls.remove();
+            const terminalHeader = document.querySelector('.terminal-header');
+            if (terminalHeader) {
+                terminalHeader.innerHTML = '<span class="terminal-title">🌞 gm</span>';
+            }
         }
         
         // Show game over message
@@ -1242,10 +1520,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cell.classList.remove('selecting');
         });
 
-        // Update instructions
-        const instructions = document.querySelector('.game-instructions');
-        instructions.textContent = '> Click anywhere to paste the stamp pattern. Press ESC or switch tools to cancel.';
-
         // Change stamp button icon to check mark temporarily
         const stampButton = document.querySelector('button[title="Stamp Tool"]');
         if (stampButton) {
@@ -1299,9 +1573,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.querySelectorAll('.conway-cell').forEach(cell => {
                         cell.classList.remove('selecting');
                     });
-                    // Update instructions
-                    const instructions = document.querySelector('.game-instructions');
-                    instructions.textContent = '> Click and drag to select cells for stamping.';
                 } else {
                     stopConwayGame();
                 }

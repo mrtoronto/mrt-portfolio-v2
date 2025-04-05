@@ -88,7 +88,7 @@ body {
 
 .terminal-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     padding: 0.5rem;
     border-bottom: 1px solid var(--primary-color);
@@ -102,44 +102,145 @@ body {
     font-size: 1.2rem;
 }
 
+
 .game-controls {
     display: flex;
     gap: 0.25rem;
     align-items: center;
     user-select: none;
+    justify-content: center;
+    padding: 0.5rem;
+    width: 100%;
+    position: relative;
+    flex-wrap: nowrap;
 }
 
-.game-controls button {
+.zoom-controls {
+    position: absolute;
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    z-index: 1;
+}
+
+.zoom-controls.left {
+    left: 0.5rem;
+}
+
+.zoom-controls.right {
+    right: 0.5rem;
+}
+
+.control-button {
     background: transparent;
     border: 1px solid var(--primary-color);
     color: var(--primary-color);
-    padding: 0.25rem;
+    padding: 0.5rem;
     font-family: 'VT323', monospace;
     font-size: 1.2rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-width: 2rem;
-    height: 2rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
-.game-controls button:hover {
+.game-controls .control-button:hover {
     background: rgba(0, 255, 157, 0.1);
     transform: translateY(-2px);
     box-shadow: 0 0 10px rgba(0, 255, 157, 0.2);
 }
 
-.game-controls button:active {
+.game-controls .control-button:active {
     background: var(--primary-color);
     color: var(--background-color);
     transform: translateY(0);
 }
 
-.game-controls button.active {
+.game-controls .control-button.active {
     background: var(--primary-color);
     color: var(--background-color);
+}
+
+/* Dropdown styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--primary-color);
+    min-width: 120px;
+    z-index: 1;
+    top: 100%;
+    left: 0;
+    margin-top: 0.25rem;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+.dropdown-content button {
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-bottom: 1px solid rgba(0, 255, 157, 0.2);
+    height: auto;
+    min-width: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dropdown-content button:last-child {
+    border-bottom: none;
+}
+
+/* Show dropdown on hover for desktop */
+@media (hover: hover) {
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .game-controls {
+        gap: 0.25rem;
+        padding: 0.5rem;
+    }
+
+    .game-controls .control-button {
+        min-width: 2rem;
+        height: 2rem;
+    }
+
+    .dropdown-content {
+        min-width: 150px;
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: 0;
+        border-radius: 8px 8px 0 0;
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    .dropdown-content button {
+        padding: 0.75rem 1rem;
+        font-size: 1.1rem;
+    }
 }
 
 .terminal-content {
@@ -232,6 +333,24 @@ body {
 
     .wave-container {
         display: none;
+    }
+
+    .game-controls {
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    
+    .speed-controls {
+        width: 100%;
+        justify-content: center;
+        margin: 0.5rem 0;
+    }
+
+    .speed-controls .control-button {
+        min-width: 3rem;
+        height: 3rem;
+        font-size: 1.4rem;
     }
 }
 
@@ -612,19 +731,6 @@ body {
     border-radius: 4px;
 }
 
-.control-button {
-    background: transparent;
-    border: 1px solid var(--primary-color);
-    color: var(--primary-color);
-    padding: 0.5rem;
-    font-family: 'VT323', monospace;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
-    width: 100%;
-}
-
 .control-button:hover {
     background: rgba(0, 255, 157, 0.1);
     transform: translateY(-2px);
@@ -646,17 +752,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-}
-
-.zoom-controls {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    padding: 0.5rem;
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--primary-color);
-    border-radius: 4px;
-    width: 100%;
 }
 
 .zoom-button {
@@ -791,4 +886,68 @@ body {
 .conway-cell.selecting.alive {
     background-color: var(--primary-color);
     opacity: 0.7;
+}
+
+.hide-on-mobile {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .hide-on-mobile {
+        display: block;
+    }
+}
+
+.conway-instructions-overlay {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.conway-instructions-overlay h1 {
+    animation: glitch 500ms infinite;
+}
+
+.conway-instructions-overlay p {
+    animation: fadeIn 0.5s ease-out;
+    animation-delay: 0.5s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.conway-instructions-overlay button {
+    animation: fadeIn 0.5s ease-out;
+    animation-delay: 1s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.conway-instructions-overlay button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px var(--primary-color);
+}
+
+.snake-instructions-overlay {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.snake-instructions-overlay h1 {
+    animation: glitch 500ms infinite;
+}
+
+.snake-instructions-overlay p {
+    animation: fadeIn 0.5s ease-out;
+    animation-delay: 0.5s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.snake-instructions-overlay button {
+    animation: fadeIn 0.5s ease-out;
+    animation-delay: 1s;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+.snake-instructions-overlay button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px var(--primary-color);
 }
